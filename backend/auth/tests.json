@@ -1,0 +1,11 @@
+{
+  "tests": [
+    {
+      "name": "Auth with dev mock",
+      "method": "POST",
+      "path": "/",
+      "body": {"initData": "dev_mock"},
+      "expectedStatus": 200
+    }
+  ]
+}

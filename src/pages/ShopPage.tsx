@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
+import type { TgUser } from '@/hooks/useAuth';
+interface Props { user: TgUser | null; onBalanceChange: (b: number) => void; }
 
 interface ShopItem {
   id: number;
@@ -47,15 +49,18 @@ const SHOP_ITEMS: ShopItem[] = [
 
 type Category = 'all' | 'nft' | 'boost' | 'gift';
 
-export default function ShopPage() {
+export default function ShopPage({ user, onBalanceChange }: Props) {
   const [cat, setCat] = useState<Category>('all');
-  const [balance] = useState(5000);
+  const [localBalance, setLocalBalance] = useState<number | null>(null);
+  const balance = localBalance ?? user?.balance ?? 0;
+  const setBalance = (val: number) => { setLocalBalance(val); onBalanceChange(val); };
   const [bought, setBought] = useState<number[]>([]);
 
   const filtered = cat === 'all' ? SHOP_ITEMS : SHOP_ITEMS.filter(i => i.category === cat);
 
   const buy = (item: ShopItem) => {
     if (balance < item.price) return;
+    setBalance(balance - item.price);
     setBought(prev => [...prev, item.id]);
   };
 

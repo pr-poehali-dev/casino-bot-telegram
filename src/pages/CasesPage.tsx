@@ -1,5 +1,8 @@
 import { useState, useRef } from 'react';
 import Icon from '@/components/ui/icon';
+import type { TgUser } from '@/hooks/useAuth';
+
+interface Props { user: TgUser | null; onBalanceChange: (b: number) => void; }
 
 interface CaseItem {
   id: number;
@@ -93,13 +96,15 @@ const RARITY_LABELS = {
   impossible: '✨ NFT',
 };
 
-export default function CasesPage() {
+export default function CasesPage({ user, onBalanceChange }: Props) {
   const [selectedCase, setSelectedCase] = useState<CaseConfig | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
   const [wonItem, setWonItem] = useState<CaseItem | null>(null);
   const [spinItems, setSpinItems] = useState<CaseItem[]>([]);
   const [spinOffset, setSpinOffset] = useState(0);
-  const [balance, setBalance] = useState(5000);
+  const [localBalance, setLocalBalance] = useState<number | null>(null);
+  const balance = localBalance ?? user?.balance ?? 0;
+  const setBalance = (val: number) => { setLocalBalance(val); onBalanceChange(val); };
   const [openCount, setOpenCount] = useState(1);
   const [results, setResults] = useState<CaseItem[]>([]);
 

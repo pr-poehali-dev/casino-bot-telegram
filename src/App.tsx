@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
+import { useAuth } from '@/hooks/useAuth';
+import DepositModal from '@/components/DepositModal';
 import CrashGame from '@/pages/CrashGame';
 import CasesPage from '@/pages/CasesPage';
 import ProfilePage from '@/pages/ProfilePage';
@@ -21,27 +23,41 @@ const NAV_TABS = [
 ];
 
 export default function App() {
+  const { user, loading, refreshUser } = useAuth();
   const [tab, setTab] = useState<Tab>('crash');
   const [subPage, setSubPage] = useState<SubPage>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [showDeposit, setShowDeposit] = useState(false);
+
+  const balance = user?.balance ?? 0;
 
   const renderPage = () => {
-    if (subPage === 'referral') return <ReferralPage />;
+    if (subPage === 'referral') return <ReferralPage user={user} />;
     if (subPage === 'support') return <SupportPage />;
     if (subPage === 'admin') return <AdminPage />;
 
     switch (tab) {
-      case 'crash': return <CrashGame />;
-      case 'cases': return <CasesPage />;
+      case 'crash': return <CrashGame user={user} onBalanceChange={(b) => refreshUser({ balance: b })} />;
+      case 'cases': return <CasesPage user={user} onBalanceChange={(b) => refreshUser({ balance: b })} />;
       case 'leaderboard': return <LeaderboardPage />;
-      case 'shop': return <ShopPage />;
-      case 'profile': return <ProfilePage />;
+      case 'shop': return <ShopPage user={user} onBalanceChange={(b) => refreshUser({ balance: b })} />;
+      case 'profile': return <ProfilePage user={user} />;
     }
   };
 
   const currentLabel = subPage
     ? ({ referral: 'Рефералы', support: 'Поддержка', admin: 'Админ' } as Record<string, string>)[subPage]
     : NAV_TABS.find(t => t.id === tab)?.label;
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-dvh" style={{ background: 'var(--nova-bg)' }}>
+        <div className="text-5xl animate-float mb-4">🚀</div>
+        <div className="font-cormorant font-bold text-3xl text-gold mb-2">NOVA</div>
+        <div className="text-sm" style={{ color: 'var(--nova-text-muted)' }}>Загружаем...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col" style={{
@@ -82,7 +98,9 @@ export default function App() {
         </div>
 
         <div className="flex items-center gap-2">
-          <div className="stars-badge text-xs">⭐ 5 000</div>
+          <button onClick={() => setShowDeposit(true)} className="stars-badge text-xs" style={{ cursor: 'pointer' }}>
+            ⭐ {balance.toLocaleString()}
+          </button>
           <button onClick={() => setMenuOpen(!menuOpen)}
             className="w-8 h-8 rounded-full flex items-center justify-center transition-all"
             style={{ background: menuOpen ? 'rgba(212,168,67,0.2)' : 'rgba(255,255,255,0.08)' }}>
@@ -91,7 +109,7 @@ export default function App() {
         </div>
       </div>
 
-      {/* Dropdown menu overlay */}
+      {/* Dropdown menu */}
       {menuOpen && (
         <>
           <div className="absolute inset-0 z-40" onClick={() => setMenuOpen(false)} />
@@ -112,7 +130,8 @@ export default function App() {
               </button>
             ))}
             <div className="mx-4 my-1" style={{ borderTop: '1px solid var(--nova-border)' }} />
-            <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all text-left"
+            <button onClick={() => { setShowDeposit(true); setMenuOpen(false); }}
+              className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all text-left"
               onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.05)')}
               onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}>
               <span className="text-base">💳</span>
@@ -127,7 +146,7 @@ export default function App() {
         {renderPage()}
       </div>
 
-      {/* Bottom navigation */}
+      {/* Bottom nav */}
       {!subPage && (
         <div className="shrink-0 flex items-center" style={{
           background: 'rgba(10,10,15,0.98)',
@@ -139,9 +158,7 @@ export default function App() {
           {NAV_TABS.map(t => {
             const active = tab === t.id;
             return (
-              <button
-                key={t.id}
-                onClick={() => setTab(t.id)}
+              <button key={t.id} onClick={() => setTab(t.id)}
                 className="flex-1 flex flex-col items-center py-2.5 gap-0.5 relative transition-all"
                 style={{ color: active ? 'var(--nova-gold)' : 'var(--nova-text-muted)' }}>
                 {active && (
@@ -154,6 +171,15 @@ export default function App() {
             );
           })}
         </div>
+      )}
+
+      {/* Deposit modal */}
+      {showDeposit && user && (
+        <DepositModal
+          userId={user.id}
+          onClose={() => setShowDeposit(false)}
+          onSuccess={(stars) => refreshUser({ balance: balance + stars })}
+        />
       )}
     </div>
   );

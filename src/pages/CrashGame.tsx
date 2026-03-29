@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Icon from '@/components/ui/icon';
+import type { TgUser } from '@/hooks/useAuth';
+
+interface Props {
+  user: TgUser | null;
+  onBalanceChange: (balance: number) => void;
+}
 
 type GameState = 'waiting' | 'running' | 'crashed';
 
@@ -32,7 +38,7 @@ const MOCK_BETS: Bet[] = [
   { id: 5, user: 'Юля***', amount: 2500 },
 ];
 
-export default function CrashGame() {
+export default function CrashGame({ user, onBalanceChange }: Props) {
   const [gameState, setGameState] = useState<GameState>('waiting');
   const [multiplier, setMultiplier] = useState(1.0);
   const [crashPoint, setCrashPoint] = useState(2.5);
@@ -45,8 +51,11 @@ export default function CrashGame() {
   const [bets, setBets] = useState<Bet[]>(MOCK_BETS);
   const [history, setHistory] = useState<number[]>([8.4, 1.2, 15.6, 3.1, 1.0, 22.8, 4.5, 1.8, 7.2, 2.3]);
   const [graphPoints, setGraphPoints] = useState<{x: number, y: number}[]>([]);
-  const [balance, setBalance] = useState(5000);
+  const [localBalance, setLocalBalance] = useState<number | null>(null);
   const [resultMsg, setResultMsg] = useState<{text: string, win: boolean} | null>(null);
+
+  const balance = localBalance ?? user?.balance ?? 0;
+  const setBalance = (val: number) => { setLocalBalance(val); onBalanceChange(val); };
   
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);

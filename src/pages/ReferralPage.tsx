@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
+import type { TgUser } from '@/hooks/useAuth';
+interface Props { user: TgUser | null; }
 
 const REFS = [
   { name: 'Иван П.', date: '27 марта', earned: 250, active: true },
@@ -7,9 +9,9 @@ const REFS = [
   { name: 'Олег В.', date: '20 марта', earned: 0, active: false },
 ];
 
-export default function ReferralPage() {
+export default function ReferralPage({ user }: Props) {
   const [copied, setCopied] = useState(false);
-  const refCode = 'NOVA-A7X2K';
+  const refCode = user?.referral_code || 'NOVA-XXXXX';
   const refLink = `https://t.me/NovaGames_bot?start=${refCode}`;
 
   const copyLink = () => {

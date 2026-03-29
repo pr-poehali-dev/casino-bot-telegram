@@ -1,4 +1,6 @@
 import Icon from '@/components/ui/icon';
+import type { TgUser } from '@/hooks/useAuth';
+interface Props { user: TgUser | null; }
 
 const HISTORY = [
   { id: 1, type: 'crash', result: 'win', amount: 500, multiplier: 3.2, time: '10:32' },
@@ -21,8 +23,9 @@ const STATS = {
   nextLevelXp: 10000,
 };
 
-export default function ProfilePage() {
+export default function ProfilePage({ user }: Props) {
   const profit = STATS.totalWon - STATS.totalLost;
+  const displayName = user ? `${user.first_name} ${user.last_name || ''}`.trim() : 'Игрок';
   const xpPct = (STATS.xp / STATS.nextLevelXp) * 100;
 
   return (
@@ -40,9 +43,11 @@ export default function ProfilePage() {
           </div>
         </div>
         <div>
-          <div className="font-cormorant font-bold text-xl text-gold">Александр В.</div>
-          <div className="text-xs mb-2" style={{ color: 'var(--nova-text-muted)' }}>@alexv • VIP Игрок</div>
-          <div className="stars-badge">⭐ 5 000</div>
+          <div className="font-cormorant font-bold text-xl text-gold">{displayName}</div>
+          <div className="text-xs mb-2" style={{ color: 'var(--nova-text-muted)' }}>
+            {user?.username ? `@${user.username}` : 'Nova Casino'} • VIP Игрок
+          </div>
+          <div className="stars-badge">⭐ {(user?.balance ?? 0).toLocaleString()}</div>
         </div>
         <button className="ml-auto w-8 h-8 rounded-full flex items-center justify-center"
           style={{ background: 'rgba(255,255,255,0.08)' }}>

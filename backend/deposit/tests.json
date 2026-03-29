@@ -1,0 +1,11 @@
+{
+  "tests": [
+    {
+      "name": "Missing user_id",
+      "method": "POST",
+      "path": "/",
+      "body": {},
+      "expectedStatus": 400
+    }
+  ]
+}
